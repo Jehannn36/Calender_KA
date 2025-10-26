@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        IMAGENAME = 'jihannatasya/Calender_App'
+        IMAGENAME = 'jihannatasya/calender_app'
         REGISTRY = 'https://index.docker.io/v1/'
         REGISTRYCREDENTIALS = 'dockerhub-credentials'
     }
