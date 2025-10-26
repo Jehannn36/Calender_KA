@@ -4,7 +4,7 @@ import MainScreenCustom from "./screens/MainScreenCustom";
 export default function App() {
   return (
     <SafeAreaView style={styles.bgContainer}>
-      <StatusBar barStyle="ligth-content" />
+      <StatusBar barStyle="light-content" />   {/* ✅ perbaikan di sini */}
       <MainScreenCustom />
     </SafeAreaView>
   );
