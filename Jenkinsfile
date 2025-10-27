@@ -3,7 +3,6 @@ pipeline {
 
     environment {
         IMAGENAME = 'jihannatasya/calender_app'
-        REGISTRY = 'https://index.docker.io/v1/'
         REGISTRYCREDENTIALS = 'dockerhub-credentials'
     }
 
@@ -13,20 +12,39 @@ pipeline {
                 checkout scm
             }
         }
+
         stage('Build Docker Image') {
             steps {
                 script {
-                    docker.build("${IMAGENAME}:${env.BUILD_NUMBER}")
+                    withCredentials([usernamePassword(credentialsId: "${REGISTRYCREDENTIALS}", usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                        bat '''
+                            echo ===== LOGIN TO DOCKER HUB =====
+                            docker logout
+                            docker login -u %DOCKER_USER% -p %DOCKER_PASS%
+
+                            echo ===== PULL BASE IMAGES =====
+                            docker pull node:18-alpine
+                            docker pull nginx:alpine
+
+                            echo ===== BUILD DOCKER IMAGE =====
+                            docker build -t %IMAGENAME%:%BUILD_NUMBER% .
+                        '''
+                    }
                 }
             }
         }
+
         stage('Push Docker Image') {
             steps {
                 script {
-                    docker.withRegistry("${REGISTRY}", "${REGISTRYCREDENTIALS}") {
-                        def tag = "${IMAGENAME}:${env.BUILD_NUMBER}"
-                        docker.image(tag).push()
-                        docker.image(tag).push('latest')
+                    withCredentials([usernamePassword(credentialsId: "${REGISTRYCREDENTIALS}", usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                        bat '''
+                            echo ===== PUSH DOCKER IMAGE =====
+                            docker login -u %DOCKER_USER% -p %DOCKER_PASS%
+                            docker push %IMAGENAME%:%BUILD_NUMBER%
+                            docker tag %IMAGENAME%:%BUILD_NUMBER% %IMAGENAME%:latest
+                            docker push %IMAGENAME%:latest
+                        '''
                     }
                 }
             }
